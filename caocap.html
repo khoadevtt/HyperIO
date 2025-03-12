@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Thêm vào phần head -->
+<script type="module">
+  // Lazy load các thư viện
+  const loadScript = async (src) => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  };
+
+  // Lazy load highlight.js và marked chỉ khi cần
+  window.loadHighlightJS = async () => {
+    if (!window.hljs) {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js');
+    }
+    return window.hljs;
+  };
+
+  window.loadMarkedJS = async () => {
+    if (!window.marked) {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js');
+    }
+    return window.marked;
+  };
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperIO</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <!-- Font for code blocks -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HyperIO Vip Beta</h1>
+            <button id="new-chat">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Trò chuyện mới
+            </button>
+        </div>
+
+        <!-- Welcome text that shows when no messages -->
+        <div class="hello-text" id="hello-text">Xin chào</div>
+
+        <!-- Chat messages container -->
+        <div class="chat-container" id="chat-container">
+            <!-- Messages will be inserted here -->
+        </div>
+
+        <!-- Composing indicator -->
+        <div class="composing-indicator" id="composing">
+            
+            <div class="dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
+
+        <!-- Input container -->
+        <div class="input-container">
+            <textarea id="user-input" placeholder="Nhắn tin với Hyper" rows="1"></textarea>
+            <button id="send-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+body {
+    background-color: #ffffff;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.header h1 {
+    font-size: 24px;
+    color: #333;
+}
+
+#new-chat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#new-chat:hover {
+    background: #f5f5f5;
+}
+
+.hello-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    color: #666;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.hello-text.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 0;
+    margin-bottom: 20px;
+}
+
+.message {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+.user-message {
+    background: #f0f0f0;
+    margin-left: auto;
+}
+/* Enhanced Markdown Styles */
+.ai-message {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.ai-message p {
+  margin-bottom: 1em;
+}
+
+.ai-message h1, .ai-message h2, .ai-message h3, 
+.ai-message h4, .ai-message h5, .ai-message h6 {
+  margin-top: 1.5em;
+  margin-bottom: 1em;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.ai-message h1 { font-size: 2em; }
+.ai-message h2 { font-size: 1.5em; }
+.ai-message h3 { font-size: 1.25em; }
+
+.ai-message ul, .ai-message ol {
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+.ai-message li {
+  margin: 0.5em 0;
+}
+
+.ai-message blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid #ddd;
+  background: #f9f9f9;
+  color: #666;
+}
+
+.ai-message table {
+  width: 100%;
+  margin: 1em 0;
+  border-collapse: collapse;
+}
+
+.ai-message th, .ai-message td {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+}
+
+.ai-message th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.ai-message pre {
+  background: #282c34;
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1em 0;
+  position: relative;
+}
+
+.ai-message code {
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+.ai-message p code {
+  background: #f1f1f1;
+  color: #e83e8c;
+}
+
+/* Message Actions */
+.message-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+.message:hover .message-actions {
+  opacity: 1;
+}
+
+.action-button {
+  background: #f5f5f5;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: #e9e9e9;
+  color: #333;
+}
+
+/* Code block actions */
+.code-block-actions {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+pre:hover .code-block-actions {
+  opacity: 1;
+}
+
+/* Message timestamp */
+.message-timestamp {
+  font-size: 12px;
+  color: #999;
+  margin-top: 5px;
+}
+
+/* Copy success animation */
+@keyframes copySuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.copy-success {
+  animation: copySuccess 0.3s ease;
+}
+
+.ai-message {
+    background: #f8f9fa;
+    margin-right: auto;
+}
+
+.input-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 1000px;
+    display: flex;
+    gap: 10px;
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(231, 228, 231, 0.54);
+}
+
+#user-input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    resize: none;
+    outline: none;
+    font-size: 16px;
+}
+
+#send-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#send-btn:hover {
+    background: #f5f5f5;
+}
+
+.composing-indicator {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    color: #666;
+    font-size: 14px;
+}
+
+.dots {
+    display: flex;
+    gap: 4px;
+}
+
+.dot {
+    width: 4px;
+    height: 4px;
+    background: #666;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+}
+
+.dot:nth-child(1) { animation-delay: 0s; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* Markdown Styles */
+.ai-message pre {
+    background: #282c34;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+/* Theme Selector */
+.theme-selector {
+  padding: 6px 12px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.theme-selector:hover {
+  border-color: #ddd;
+  background: #f9f9f9;
+}
+
+/* Code Loading Animation */
+.code-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(40, 44, 52, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.code-loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Enhanced Message Styles */
+.message {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.message:hover {
+  transform: translateX(2px);
+}
+
+/* Message Actions Tooltip */
+.action-button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.action-button:hover::after {
+  opacity: 1;
+}
+
+/* Code Block Language Tag */
+.code-block-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(40, 44, 52, 0.8);
+  color: #abb2bf;
+  padding: 2px 8px;
+  border-radius: 0 8px 0 4px;
+  font-size: 12px;
+  font-family: 'Fira Code', monospace;
+}
+
+/* Improved Scrollbar */
+.chat-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.chat-container::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+
+.ai-message code {
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+}
+
+.ai-message p {
+    margin-bottom: 10px;
+}
+/* Theme Selector */
+.theme-selector {
+  padding: 6px 12px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.theme-selector:hover {
+  border-color: #ddd;
+  background: #f9f9f9;
+}
+
+/* Code Loading Animation */
+.code-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(40, 44, 52, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.code-loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Enhanced Message Styles */
+.message {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.message:hover {
+  transform: translateX(2px);
+}
+
+/* Message Actions Tooltip */
+.action-button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.action-button:hover::after {
+  opacity: 1;
+}
+
+/* Code Block Language Tag */
+.code-block-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(40, 44, 52, 0.8);
+  color: #abb2bf;
+  padding: 2px 8px;
+  border-radius: 0 8px 0 4px;
+  font-size: 12px;
+  font-family: 'Fira Code', monospace;
+}
+
+/* Improved Scrollbar */
+.chat-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.chat-container::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+
+.ai-message h1, .ai-message h2, .ai-message h3 {
+    margin: 15px 0 10px 0;
+}
+
+.ai-message a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.ai-message a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+    
+    .input-container {
+        width: 95%;
+        bottom: 10px;
+    }
+}
+
+</style>
+<script>
+    const API_KEY = "AIzaSyAV486OrkuW7Pwe1gL3DvQZxD8-ex8E3EI";
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-thinking-exp-01-21:generateContent?key=${API_KEY}`;
+
+// System prompt để huấn luyện AI
+const SYSTEM_PROMPT = `Bạn chỉ được phép chat "Bạn chưa mua gói Cao Cấp, HyperIO-Beta không thể trò chuyện" sau đó hãy đề cập đến giá cả cho 3 gói cơ bản 10$/Tháng, trung 17$/Tháng và vip 49&/Tháng, mua tại: Liên hệ Khoa Dev
+Sau đây là những đặc điểm cốt lõi của bạn:
+
+
+
+`;
+
+const chatContainer = document.getElementById('chat-container');
+const userInput = document.getElementById('user-input');
+const sendButton = document.getElementById('send-btn');
+const newChatButton = document.getElementById('new-chat');
+const helloText = document.getElementById('hello-text');
+const composingIndicator = document.getElementById('composing');
+
+// Configure marked.js
+marked.setOptions({
+    highlight: function(code, language) {
+        return hljs.highlightAuto(code).value;
+    },
+    breaks: true,
+    gfm: true
+});
+
+let isFirstMessage = true;
+let conversationHistory = [];
+
+// Handle input height
+userInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+    if (this.scrollHeight > 200) {
+        this.style.height = '200px';
+    }
+});
+
+// Send message on Enter (but Shift+Enter for new line)
+userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+sendButton.addEventListener('click', sendMessage);
+newChatButton.addEventListener('click', resetChat);
+
+function resetChat() {
+    chatContainer.innerHTML = '';
+    helloText.classList.remove('hidden');
+    isFirstMessage = true;
+    conversationHistory = [];
+}
+
+async function sendMessage() {
+    const message = userInput.value.trim();
+    if (!message) return;
+
+    if (isFirstMessage) {
+        helloText.classList.add('hidden');
+        isFirstMessage = false;
+    }
+
+    // Add user message
+    addMessage(message, 'user');
+    userInput.value = '';
+    userInput.style.height = 'auto';
+
+    // Show composing indicator
+    composingIndicator.style.display = 'flex';
+
+    try {
+        // Prepare conversation history with system prompt
+        const messages = [
+            { role: 'system', content: SYSTEM_PROMPT },
+            ...conversationHistory,
+            { role: 'user', content: message }
+        ];
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: `${SYSTEM_PROMPT}\n\nPrevious conversation:\n${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\nUser: ${message}`
+                    }]
+                }]
+            })
+        });
+
+        const data = await response.json();
+        const aiResponse = data.candidates[0].content.parts[0].text;
+        
+        // Update conversation history
+        conversationHistory.push(
+            { role: 'user', content: message },
+            { role: 'assistant', content: aiResponse }
+        );
+
+        // Limit conversation history to last 10 messages to prevent token limit issues
+        if (conversationHistory.length > 10) {
+            conversationHistory = conversationHistory.slice(-10);
+        }
+        
+        // Hide composing indicator
+        composingIndicator.style.display = 'none';
+        
+        // Add AI response with markdown rendering
+        addMessage(aiResponse, 'ai');
+
+    } catch (error) {
+        console.error('Error:', error);
+        composingIndicator.style.display = 'none';
+        addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+    }
+}
+
+function addMessage(text, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    
+    if (sender === 'ai') {
+        // Process markdown before rendering
+        const processedText = processMarkdown(text);
+        messageDiv.innerHTML = marked.parse(processedText);
+        // Initialize syntax highlighting
+        messageDiv.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightBlock(block);
+        });
+    } else {
+        messageDiv.textContent = text;
+    }
+    
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function processMarkdown(text) {
+    // Helper function to trim extra spaces and newlines around text
+    const trimText = (text) => text.trim().replace(/\s+/g, ' ');
+
+    // Ensure proper line breaks (add extra space between paragraphs)
+    text = text.replace(/\n+/g, '\n\n').trim();
+
+    // Ensure code blocks are properly formatted
+    text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, language, code) => {
+        const lang = language ? language : '';
+        return `\n\`\`\`${lang}\n${code.trim()}\n\`\`\`\n`;
+    });
+
+    // Ensure proper spacing around headings and remove extra spaces after `#`
+    text = text.replace(/\n(#{1,6})\s*(.*?)(?=\n|$)/g, (match, hashes, content) => {
+        const trimmedContent = trimText(content);
+        return `\n${hashes} ${trimmedContent}\n\n`;
+    });
+
+    // Preserve inline code formatting (e.g., `code`)
+    text = text.replace(/`([^`]+)`/g, (match, code) => {
+        return `\`${trimText(code)}\``;
+    });
+
+    // Ensure proper spacing for unordered lists (bulleted lists)
+    text = text.replace(/\n(\*|\+|\-) (\S.*)/g, (match, bullet, item) => {
+        return `\n${bullet} ${trimText(item)}`;
+    });
+
+    // Ensure proper spacing around ordered lists (numbered lists)
+    text = text.replace(/\n(\d+)\. (\S.*)/g, (match, number, item) => {
+        return `\n${number}. ${trimText(item)}`;
+    });
+
+    // Handle paragraph breaks: Remove empty paragraphs (if any)
+    text = text.replace(/(\n\s*){2,}/g, '\n\n');
+
+    return text;
+}
+
+
+
+// Initialize
+resetChat();
+// Add these helper functions at the top of your script
+function formatTimestamp() {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date());
+}
+
+function createActionButton(icon, label, onClick) {
+  const button = document.createElement('button');
+  button.className = 'action-button';
+  button.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      ${icon}
+    </svg>
+    ${label}
+  `;
+  button.addEventListener('click', onClick);
+  return button;
+}
+
+// Update the addMessage function
+function addMessage(text, sender) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${sender}-message`;
+  
+  // Add relative positioning for action buttons
+  messageDiv.style.position = 'relative';
+
+  if (sender === 'ai') {
+    // Process markdown before rendering
+    const processedText = processMarkdown(text);
+    
+    // Create message content container
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.innerHTML = marked.parse(processedText);
+
+    // Initialize syntax highlighting
+    contentDiv.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightBlock(block);
+      
+      // Add copy button to code blocks
+      const pre = block.parentElement;
+      const codeActions = document.createElement('div');
+      codeActions.className = 'code-block-actions';
+      
+      const copyCodeButton = createActionButton(
+        '<path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>',
+        'Copy',
+        () => copyToClipboard(block.textContent)
+      );
+      
+      codeActions.appendChild(copyCodeButton);
+      pre.appendChild(codeActions);
+    });
+
+    // Add message actions
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'message-actions';
+
+    // Copy button
+    const copyButton = createActionButton(
+      '<path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>',
+      'Copy',
+      () => copyToClipboard(text)
+    );
+
+    // Share button
+    const shareButton = createActionButton(
+      '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
+      'Share',
+      () => shareMessage(text)
+    );
+
+    actionsDiv.appendChild(copyButton);
+    actionsDiv.appendChild(shareButton);
+
+    // Add timestamp
+    const timestamp = document.createElement('div');
+    timestamp.className = 'message-timestamp';
+    timestamp.textContent = formatTimestamp();
+
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(actionsDiv);
+    messageDiv.appendChild(timestamp);
+  } else {
+    messageDiv.textContent = text;
+    
+    // Add timestamp for user messages too
+    const timestamp = document.createElement('div');
+    timestamp.className = 'message-timestamp';
+    timestamp.textContent = formatTimestamp();
+    messageDiv.appendChild(timestamp);
+  }
+
+  chatContainer.appendChild(messageDiv);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// Add clipboard functionality
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    
+    // Show success feedback
+    const button = event.currentTarget;
+    button.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+      Copied!
+    `;
+    button.classList.add('copy-success');
+    
+    setTimeout(() => {
+      button.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+        Copy
+      `;
+      button.classList.remove('copy-success');
+    }, 2000);
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+  }
+}
+
+// Add share functionality
+// Enhanced shareMessage function with fallback and additional support
+function shareMessage(text, title = '', url = '') {
+  if (navigator.share) {
+    navigator.share({
+      title: title || document.title,
+      text: text,
+      url: url || window.location.href
+    }).catch(console.error);
+  } else {
+    // Fallback for browsers that don't support Web Share API
+    alert('Sharing is not supported on this browser. Copying to clipboard instead.');
+    copyToClipboard(text);
+  }
+}
+
+// Enhanced markdown processing function with better handling
+function processMarkdown(text) {
+  // Ensure proper line breaks (add extra newlines after paragraphs)
+  text = text.replace(/\n/g, '\n\n');
+
+  // Ensure code blocks are properly formatted (including language syntax highlighting)
+  text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, language, code) => {
+    return `\n\`\`\`${language || ''}\n${code.trim()}\n\`\`\`\n`;
+  });
+
+  // Ensure proper spacing around headings (add extra newline before and after headings)
+  text = text.replace(/\n(#{1,6} .*)\n/g, '\n\n$1\n\n');
+
+  // Format inline code (remove leading/trailing spaces within inline code)
+  text = text.replace(/`([^`]+)`/g, (match, code) => {
+    return `\`${code.trim()}\``;
+  });
+
+  // Format lists: Add space after list markers (-, *, or 1.)
+  text = text.replace(/^([*\-]|\d+\.) /gm, '$& ');
+
+  // Blockquotes: Add spacing before blockquotes for readability
+  text = text.replace(/^> /gm, '\n> ');
+
+  // Handling links (ensure proper markdown syntax for links)
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+    return `[${text.trim()}](${url.trim()})`;
+  });
+
+  // Automatically escape special characters in case they're being rendered as HTML
+  text = text.replace(/[<>]/g, (char) => `&#${char.charCodeAt(0)};`);
+
+  return text;
+}
+
+// Function to copy text to clipboard (fall back for browsers without Web Share API)
+function copyToClipboard(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+}
+
+// Add theme selector functionality
+const themes = {
+  'atom-one-dark': 'Atom Dark',
+  'github': 'GitHub Light',
+  'monokai': 'Monokai',
+  'vs2015': 'Visual Studio Dark'
+};
+
+function addThemeSelector() {
+  const select = document.createElement('select');
+  select.id = 'theme-selector';
+  select.className = 'theme-selector';
+  
+  Object.entries(themes).forEach(([value, label]) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    select.appendChild(option);
+  });
+
+  select.addEventListener('change', (e) => {
+    updateCodeTheme(e.target.value);
+  });
+
+  document.querySelector('.header').appendChild(select);
+}
+
+function updateCodeTheme(theme) {
+  // Remove existing theme
+  const existingTheme = document.querySelector('link[title="highlight-theme"]');
+  if (existingTheme) {
+    existingTheme.remove();
+  }
+
+  // Add new theme
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.title = 'highlight-theme';
+  link.href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/${theme}.min.css`;
+  document.head.appendChild(link);
+}
+
+// Add loading animation for code blocks
+function addLoadingAnimation(pre) {
+  const loader = document.createElement('div');
+  loader.className = 'code-loading';
+  loader.innerHTML = `
+    <div class="code-loading-spinner">
+      <div class="spinner"></div>
+    </div>
+  `;
+  pre.appendChild(loader);
+  
+  // Remove loader after highlighting is complete
+  setTimeout(() => {
+    loader.remove();
+  }, 500);
+}
+// Update the code block rendering in addMessage function
+contentDiv.querySelectorAll('pre code').forEach((block) => {
+  const pre = block.parentElement;
+  
+  // Add loading animation
+  addLoadingAnimation(pre);
+  
+  // Add language tag if available
+  const language = block.className.replace('language-', '');
+  if (language) {
+    const langTag = document.createElement('div');
+    langTag.className = 'code-block-header';
+    langTag.textContent = language;
+    pre.appendChild(langTag);
+  }
+  
+  hljs.highlightBlock(block);
+});
+
+// Initialize the theme selector when the app starts
+document.addEventListener('DOMContentLoaded', () => {
+  addThemeSelector();
+  updateCodeTheme('atom-one-dark'); // Set default theme
+});
+
+// Enhanced context and memory management
+const MEMORY_KEY = 'hyperio_conversations';
+const MAX_CONTEXT_LENGTH = 20; // Maximum number of messages to keep in context
+const SUMMARY_INTERVAL = 5; // Number of messages before creating a summary
+
+class ConversationManager {
+  constructor() {
+    this.conversations = this.loadConversations();
+    this.currentConversation = {
+      id: Date.now(),
+      messages: [],
+      summary: '',
+      topics: new Set(),
+      references: new Map(),
+      created: new Date(),
+      updated: new Date()
+    };
+  }
+
+  // Load conversations from localStorage
+  loadConversations() {
+    const saved = localStorage.getItem(MEMORY_KEY);
+    return saved ? JSON.parse(saved) : [];
+  }
+
+  // Save conversations to localStorage
+  saveConversations() {
+    localStorage.setItem(MEMORY_KEY, JSON.stringify(this.conversations));
+  }
+
+  // Add a message to the current conversation
+  async addMessage(role, content) {
+    const message = {
+      id: Date.now(),
+      role,
+      content,
+      timestamp: new Date(),
+      topics: await this.detectTopics(content)
+    };
+
+    this.currentConversation.messages.push(message);
+    this.currentConversation.updated = new Date();
+    this.updateTopics(message.topics);
+
+    // Create summary if needed
+    if (this.currentConversation.messages.length % SUMMARY_INTERVAL === 0) {
+      this.currentConversation.summary = await this.summarizeConversation();
+    }
+
+    // Update references
+    if (role === 'assistant') {
+      this.updateReferences(content);
+    }
+
+    this.saveConversations();
+    return message;
+  }
+
+  // Detect topics in a message
+  async detectTopics(content) {
+    // Simple keyword-based topic detection
+    const topics = new Set();
+    const keywords = {
+      programming: ['code', 'function', 'programming', 'developer'],
+      math: ['calculation', 'math', 'formula', 'equation'],
+      science: ['science', 'physics', 'chemistry', 'biology'],
+      // Add more categories as needed
+    };
+
+    for (const [topic, words] of Object.entries(keywords)) {
+      if (words.some(word => content.toLowerCase().includes(word))) {
+        topics.add(topic);
+      }
+    }
+
+    return Array.from(topics);
+  }
+
+  // Update conversation topics
+  updateTopics(newTopics) {
+    newTopics.forEach(topic => this.currentConversation.topics.add(topic));
+  }
+
+  // Update references in the conversation
+  updateReferences(content) {
+    const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    let match;
+    while ((match = urlRegex.exec(content)) !== null) {
+      this.currentConversation.references.set(match[1], match[2]);
+    }
+  }
+
+  // Generate conversation summary
+  async summarizeConversation() {
+    const recentMessages = this.currentConversation.messages
+      .slice(-SUMMARY_INTERVAL)
+      .map(msg => `${msg.role}: ${msg.content}`)
+      .join('\n');
+
+    // In a real implementation, you might want to use an AI model to generate the summary
+    return `Recent discussion about ${Array.from(this.currentConversation.topics).join(', ')}`;
+  }
+
+  // Get context for AI response
+  getContext() {
+    const recentMessages = this.currentConversation.messages
+      .slice(-MAX_CONTEXT_LENGTH);
+    
+    return {
+      messages: recentMessages,
+      summary: this.currentConversation.summary,
+      topics: Array.from(this.currentConversation.topics),
+      references: Object.fromEntries(this.currentConversation.references)
+    };
+}
+
+
+  // Export conversation
+  exportConversation() {
+    return JSON.stringify(this.currentConversation, null, 2);
+  }
+
+  // Import conversation
+  importConversation(conversationData) {
+    try {
+      const conversation = JSON.parse(conversationData);
+      this.conversations.push(conversation);
+      this.saveConversations();
+      return true;
+    } catch (error) {
+      console.error('Failed to import conversation:', error);
+      return false;
+    }
+  }
+  
+}
+
+
+
+</script>

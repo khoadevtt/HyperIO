@@ -1,0 +1,372 @@
+/* Add these new styles to your existing CSS */
+
+/* Enhanced Message Animations */
+.message {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: messageAppear 0.5s ease forwards;
+}
+
+@keyframes messageAppear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Voice Input Button */
+.voice-input-btn {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #666;
+    border-radius: 50%;
+    margin-right: 8px;
+    transition: all 0.3s ease;
+}
+
+.voice-input-btn:hover {
+    background: #f5f5f5;
+}
+
+.voice-input-active {
+    color: #ff4444;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Message Search */
+.search-container {
+    position: relative;
+    margin: 10px 0;
+    padding: 0 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 32px 8px 12px;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.search-icon {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+/* Message Categories */
+.message-category {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-right: 8px;
+    background: #f0f0f0;
+    color: #666;
+}
+
+/* Code Playground */
+.code-playground {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.code-playground-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+}
+
+.code-playground-content {
+    display: flex;
+    height: 300px;
+}
+
+.code-editor {
+    flex: 1;
+    padding: 12px;
+    font-family: 'Fira Code', monospace;
+    border: none;
+    resize: none;
+    background: #282c34;
+    color: #abb2bf;
+}
+
+.code-output {
+    flex: 1;
+    padding: 12px;
+    background: #fff;
+    border-left: 1px solid #eee;
+    overflow: auto;
+}
+
+/* Enhanced Error Handling */
+.error-message {
+    background: #fff3f3;
+    border: 1px solid #ffcdd2;
+    color: #d32f2f;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Improved Loading States */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Message Reactions */
+.message-reactions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.reaction-btn {
+    padding: 4px 8px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reaction-btn:hover {
+    background: #f5f5f5;
+}
+
+.reaction-btn.active {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    color: #2196f3;
+}
+
+/* Enhanced Typing Indicator */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    margin: 10px 0;
+    animation: fadeIn 0.3s ease;
+}
+
+.typing-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.typing-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.typing-bubbles {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.typing-bubble {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #007AFF;
+    opacity: 0.3;
+    animation: bubblePulse 1.4s infinite;
+}
+
+.typing-bubble:nth-child(2) { animation-delay: 0.2s; }
+.typing-bubble:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bubblePulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 0.3;
+    }
+    50% { 
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* Message Status Indicators */
+.message-status {
+    position: absolute;
+    bottom: -20px;
+    right: 10px;
+    font-size: 12px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Floating Action Buttons */
+.fab-container {
+    position: fixed;
+    right: 20px;
+    bottom: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.fab {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    background: #007AFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Quick Response Buttons */
+.quick-responses {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.quick-responses::-webkit-scrollbar {
+    display: none;
+}
+
+.quick-response-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.quick-response-btn:hover {
+    background: #f5f5f5;
+    transform: translateY(-2px);
+}
+
+/* Enhanced Scrollbar */
+.chat-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .message {
+        margin: 10px;
+        max-width: 90%;
+    }
+
+    .fab-container {
+        right: 10px;
+        bottom: 80px;
+    }
+
+    .quick-responses {
+        padding: 5px;
+    }
+}
+
+/* Sound Toggle Button */
+.sound-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid #eee;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sound-toggle:hover {
+    background: #f5f5f5;
+}
+
+/* Keyboard Shortcuts Help */
+.keyboard-shortcuts {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    font-size: 12px;
+    display: none;
+}
+
+.keyboard-shortcuts.show {
+    display: block;
+}
